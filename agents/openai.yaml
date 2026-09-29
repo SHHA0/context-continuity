@@ -3,4 +3,4 @@ interface:
   short_description: "Track context and preserve task state"
   default_prompt: "Use $context-continuity to report context usage, save task state at 50% and 80%, and refresh that state before any requested handoff."
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

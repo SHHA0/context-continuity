@@ -2,7 +2,7 @@
 
 Keep long Codex tasks moving while preserving recoverable task state.
 
-The skill is opt-in per conversation. Once enabled, it:
+The skill is explicit-only and opt-in per conversation. Using it in one conversation never enables another conversation in the same project. Once enabled, it:
 
 - adds one context-usage sentence to the end of every final reply;
 - updates the conversation's task state once at 50% and once at 80% of each context cycle;
@@ -21,7 +21,7 @@ Requires Python 3.10+:
 python scripts/install.py
 ```
 
-Restart Codex, then invoke `$context-continuity` in the intended conversation. The default basic mode adds a managed block to the user's global `AGENTS.md` and requires no Hook trust. Re-running the installer is safe and preserves unrelated instructions.
+Restart Codex, then explicitly invoke `$context-continuity` in each conversation where it should run. The installer removes older managed global `AGENTS.md` blocks so other conversations are not monitored automatically. Re-running the installer is safe and preserves unrelated instructions.
 
 Optional Stop Hook fallback:
 
@@ -29,7 +29,7 @@ Optional Stop Hook fallback:
 python scripts/install.py --with-hooks
 ```
 
-Restart Codex, review and trust the `Stop` handler in `/hooks`, then use `doctor` to verify real event delivery. It requests one short corrective continuation when a threshold state update or final usage sentence was omitted. Context cycles are detected from the transcript during `final-check`; no other lifecycle Hooks are installed.
+Restart Codex, review and trust the `Stop` handler in `/hooks`, then use `doctor` to verify real event delivery. The handler checks the exact project and session ID and exits silently when that conversation did not explicitly activate the skill. It requests one short corrective continuation only for an activated conversation that omitted a threshold state update or final usage sentence. Context cycles are detected from the transcript during `final-check`; no other lifecycle Hooks are installed.
 
 ## Commands
 

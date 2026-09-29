@@ -1,6 +1,6 @@
 ---
 name: context-continuity
-description: Report context usage at the end of each reply, preserve factual task state at 50% and 80% of each context cycle, and create a detailed handoff only when the user requests one.
+description: Report context usage and preserve recoverable task state in the one conversation where the user explicitly invokes this skill.
 ---
 
 # Context Continuity
@@ -17,7 +17,7 @@ python <skill>/scripts/context_continuity.py activate --project <absolute-sessio
 
 Use the current `CODEX_THREAD_ID` or `CODEX_SESSION_ID`. Activation is scoped to this conversation and project. Reading or installing the skill does not activate it.
 
-If `basic_instructions_configured` is false, explain that persistent basic monitoring requires `python scripts/install.py` and a Codex restart. If `hook_setup.offer` is true, ask the labeled Hook choice once: **Configure the Stop Hook fallback? Choose: yes, show setup steps / no, use basic mode.** Basic mode already provides final checks; the trusted `Stop` Hook only catches an omitted state update or footer. Follow the returned setup steps only when the user chooses it.
+The skill is explicit-only. Never activate it because another conversation in the same project used it, because state files exist, or because the task concerns long-running work. A different conversation must invoke `$context-continuity` for itself. If `hook_setup.offer` is true, ask the labeled Hook choice once: **Configure the Stop Hook fallback? Choose: yes, show setup steps / no, use session instructions only.** The trusted `Stop` Hook only catches an omitted state update or footer. Follow the returned setup steps only when the user chooses it.
 
 ## Before every final reply
 

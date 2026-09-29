@@ -12,7 +12,6 @@ import context_continuity as core
 
 
 EVENTS = ("Stop",)
-BASIC_BEGIN = "<!-- context-continuity:basic-monitor:begin -->"
 PREFERENCES_FILE = "context-continuity.json"
 LEGACY_PREFERENCES_FILE = "avoid-context-compaction.json"
 
@@ -258,11 +257,8 @@ def delivered(state, message):
 
 def health(args, state):
     configured = configured_events(args)
-    agents_path = core.codex_home(args.codex_home) / "AGENTS.md"
-    basic_configured = agents_path.exists() and BASIC_BEGIN in agents_path.read_text(encoding="utf-8-sig")
     observed = state.get("observed_events", {})
     return {
-        "basic_instructions_configured": basic_configured,
         "hook_mode_preference": load_preferences(args).get("hook_mode", "unselected"),
         "last_final_check": state.get("last_final_check"), "final_check_count": state.get("final_check_count", 0),
         "last_state_update": state.get("last_state_update"), "state_update_count": state.get("state_update_count", 0),

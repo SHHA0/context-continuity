@@ -35,7 +35,7 @@ class MonitorTests(unittest.TestCase):
 
     def hook(self, event, **fields):
         args = core.build_parser().parse_args(self.global_args + ["hook"])
-        incoming = dict(hook_event_name=event, session_id="session-a", cwd=str(self.project),
+        incoming = dict(hook_event_name=event, session_id=self.global_args[1], cwd=str(self.project),
                         transcript_path=str(self.transcript), turn_id="turn-1", **fields)
         old = sys.stdin
         output = io.StringIO()
@@ -101,6 +101,15 @@ class MonitorTests(unittest.TestCase):
         for event in monitor.EVENTS:
             self.assertIsNone(self.hook(event))
         self.assertFalse((self.project / core.DATA_DIR_NAME).exists())
+
+    def test_activation_does_not_enable_another_session_in_same_project(self):
+        self.append(.30)
+        self.command("activate")
+        self.global_args[1] = "session-b"
+        with self.assertRaises(ValueError):
+            self.command("final-check")
+        self.assertIsNone(self.hook("Stop", last_assistant_message="done"))
+        self.assertFalse(monitor.state_path(self.project, "session-b").exists())
 
     def test_legacy_session_state_remains_readable(self):
         legacy_root = self.project / ".avoid-context-compaction" / "session-a"

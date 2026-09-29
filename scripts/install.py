@@ -48,7 +48,7 @@ def atomic_text(path: Path, value: str) -> None:
             os.unlink(temp_name)
 
 
-def install_basic_instructions(home: Path, executable: Path, script: Path) -> Path:
+def remove_managed_instructions(home: Path) -> Path:
     path = home / "AGENTS.md"
     existing = path.read_text(encoding="utf-8-sig") if path.exists() else ""
     cleaned = existing
@@ -59,20 +59,7 @@ def install_basic_instructions(home: Path, executable: Path, script: Path) -> Pa
             if start < 0 or end < start:
                 raise ValueError(f"incomplete context-continuity block in {path}")
             cleaned = cleaned[:start].rstrip() + cleaned[end + len(end_marker):]
-    command = f'"{executable}" "{script}" final-check --project "<current-workspace-root>"'
-    block = f"""{BASIC_BEGIN}
-## Context Continuity basic monitor
-
-For the main agent only, immediately before every final response:
-
-1. Run `{command}`, replacing `<current-workspace-root>` with the absolute workspace root for the active task.
-2. If the command reports `state_update_due: true`, follow the installed `$context-continuity` skill to write the factual task state, then run `final-check` again.
-3. Append only the returned nonempty `footer` verbatim at the very end of the final response. Do not add threshold commentary or stop the task because of a context percentage.
-4. Generate a detailed handoff and copyable resume prompt only when the user explicitly requests one.
-
-If monitoring is not enabled for the current session/workspace, do nothing. Do not claim that lifecycle Hooks are running unless `doctor` reports an observed Stop event.
-{BASIC_END}"""
-    updated = cleaned.rstrip() + ("\n\n" if cleaned.strip() else "") + block + "\n"
+    updated = cleaned.rstrip() + ("\n" if cleaned.strip() else "")
     atomic_text(path, updated)
     return path
 
@@ -115,7 +102,7 @@ def main() -> int:
         shutil.copytree(source, target, ignore=shutil.ignore_patterns(*INSTALL_IGNORES))
     installed_script = target / "scripts" / "context_continuity.py"
     executable = Path(sys.executable).resolve()
-    agents_path = install_basic_instructions(home, executable, installed_script)
+    agents_path = remove_managed_instructions(home)
     if args.with_hooks:
         template = json.loads((source / "hooks" / "hooks.json").read_text(encoding="utf-8"))
         existing = {"description": "User lifecycle hooks.", "hooks": {}}
@@ -174,7 +161,7 @@ def main() -> int:
         if legacy_target.resolve().parent != skills_root:
             raise ValueError(f"refusing to remove unexpected legacy path: {legacy_target}")
         shutil.rmtree(legacy_target)
-    print(json.dumps({"skill": str(target), "compatibility_script": str(compatibility_script), "basic_instructions": str(agents_path),
+    print(json.dumps({"skill": str(target), "compatibility_script": str(compatibility_script), "global_instructions_cleaned": str(agents_path),
                       "hooks": str(hooks_path) if args.with_hooks else None,
                       "restart_required": True, "hook_trust_required": args.with_hooks}, ensure_ascii=False, indent=2))
     return 0

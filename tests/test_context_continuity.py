@@ -123,6 +123,8 @@ class ContextStateTests(unittest.TestCase):
             self.assertIn("Stop", merged["hooks"])
             self.assertIn("context_continuity.py", str(merged["hooks"]["Stop"]))
             self.assertTrue((home / "skills" / "context-continuity" / "SKILL.md").exists())
+            metadata = (home / "skills" / "context-continuity" / "agents" / "openai.yaml").read_text(encoding="utf-8")
+            self.assertIn("allow_implicit_invocation: false", metadata)
             self.assertFalse((home / "skills" / "avoid-context-compaction" / "SKILL.md").exists())
             compatibility_script = home / "skills" / "avoid-context-compaction" / "scripts" / "avoid_context_compaction.py"
             self.assertTrue(compatibility_script.exists())
@@ -136,9 +138,9 @@ class ContextStateTests(unittest.TestCase):
             preferences = json.loads((home / "context-continuity.json").read_text(encoding="utf-8"))
             self.assertEqual(preferences["hook_mode"], "enhanced")
             agents = (home / "AGENTS.md").read_text(encoding="utf-8")
-            self.assertIn("state_update_due", agents)
-            self.assertNotIn("hard-stop", agents)
-            self.assertIn("context-continuity:basic-monitor:begin", agents)
+            self.assertIn("# Existing", agents)
+            self.assertNotIn("state_update_due", agents)
+            self.assertNotIn("context-continuity:basic-monitor:begin", agents)
             self.assertNotIn("avoid-context-compaction:basic-monitor:begin", agents)
 
 
